@@ -4,9 +4,10 @@
 #   3. icône
 #   4. exécutable (PyInstaller) -> build\app\WiFiAuditPro\WiFiAuditPro.exe (interne, utilisé par l'installateur)
 #   5. version portable en un seul fichier -> dist\WiFiAuditPro-Portable.exe
+#   7. publication GitHub (release vX.Y.Z : portable + installateur), sauf -NoRelease
 #   6. installateur (Inno Setup, si présent) -> dist\WiFiAuditPro-Setup-1.0.0.exe
 # Utilisation : clic droit > Exécuter avec PowerShell, ou  .\build.ps1 [-SkipTests] [-SkipPortable]
-param([switch]$SkipTests, [switch]$SkipPortable)
+param([switch]$SkipTests, [switch]$SkipPortable, [switch]$NoRelease)
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
@@ -58,3 +59,4 @@ Copy-Item README.md dist\ -Force
 Write-Host "`nTerminé. Résultats dans le dossier dist\ :" -ForegroundColor Green
 Get-ChildItem dist | Format-Table Name, @{n="Taille (Mo)";e={ if ($_.PSIsContainer) { "{0:N1}" -f ((Get-ChildItem $_.FullName -Recurse | Measure-Object Length -Sum).Sum/1MB) } else { "{0:N1}" -f ($_.Length/1MB) } }}
 
+if (-not $NoRelease -and -not $SkipPortable) { & "$PSScriptRoot\tools\release.ps1" }

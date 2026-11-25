@@ -4,6 +4,8 @@
 
 Créé par **SCHMOCK** — <https://schmock.fr>
 
+**Télécharger** (version portable ou installateur) : <https://github.com/schm0ck101/wifi-audit-pro/releases/latest>
+
 Logiciel professionnel d'**audit** et de **supervision** de réseaux Wi‑Fi pour
 Windows 10 et 11 : inventaire des points d'accès, analyse des canaux, relevés
 sur plan avec cartes de couverture (heatmaps), supervision en direct (mode
