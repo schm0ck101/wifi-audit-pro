@@ -2,7 +2,7 @@
 ; Compilation : build.ps1 (ou ISCC.exe installer\WiFiAuditPro.iss)
 
 #define AppName "WiFi Audit Pro"
-#define AppVersion "1.0.2"
+#define AppVersion "1.0.3"
 #define AppExe "WiFiAuditPro.exe"
 
 [Setup]
