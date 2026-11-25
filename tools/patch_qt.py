@@ -13,6 +13,9 @@ introuvable ») :
   PerMonitor en repli) est déclaré dans le manifeste de l'exe (manifest.xml) et
   appliqué par Windows avant tout code : l'appel de Qt n'est alors qu'une
   confirmation.
+- qwindows.dll  -> UIAutomationCore!UiaRaiseNotificationEvent (Windows 10 1709+,
+  annonces des lecteurs d'écran) : redirigée vers UiaClientsAreListening (sans
+  effet, renvoie 0/1 = S_OK/S_FALSE).
 
 Le nom importé est remplacé sur place (même longueur ou plus court, complété
 par des zéros) : le chargeur Windows résout l'import par son nom.
@@ -27,7 +30,8 @@ import pefile
 
 PATCHES = {
     "qt6core.dll": [("kernel32.dll", b"SetThreadDescription", b"GetCurrentThreadId")],
-    "qwindows.dll": [("user32.dll", b"SetProcessDpiAwarenessContext", b"SetProcessDPIAware")],
+    "qwindows.dll": [("user32.dll", b"SetProcessDpiAwarenessContext", b"SetProcessDPIAware"),
+                     ("uiautomationcore.dll", b"UiaRaiseNotificationEvent", b"UiaClientsAreListening")],
 }
 
 

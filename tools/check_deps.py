@@ -34,6 +34,7 @@ SetThreadDpiHostingBehavior GetThreadDpiHostingBehavior GetWindowDpiHostingBehav
 SetDialogControlDpiChangeBehavior CreateFileMapping2 MapViewOfFile3 VirtualAlloc2 IsWow64Process2 GetMachineTypeAttributes
 GetIntegratedDisplaySize GetTempPath2W GetTempPath2A CreatePseudoConsole ResizePseudoConsole ClosePseudoConsole
 SetThreadSelectedCpuSetMasks GetProcessDefaultCpuSetMasks QueryInterruptTimePrecise GetSystemTimeAdjustmentPrecise
+UiaRaiseNotificationEvent UiaRaiseActiveTextPositionChangedEvent GetDpiAwarenessContextForProcess
 """.split())
 # modules optionnels jamais chargés par l'application
 IGNORE_FROM = {"qtuiotouchplugin.dll", "qmodernwindowsstyle.dll"}   # style Windows 11, chargement facultatif
