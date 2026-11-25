@@ -17,7 +17,7 @@ administrateur** et sans pilote spécial (API Wi‑Fi native de Windows).
 ---
 
 ## 1. Installation
-- **Installateur** : `WiFiAuditPro-Setup-1.0.1.exe` (installation pour l'utilisateur courant).
+- **Installateur** : `WiFiAuditPro-Setup-1.0.2.exe` (installation pour l'utilisateur courant).
 - **Portable** : `WiFiAuditPro-Portable.exe`, sans installation (clé USB d'intervention).
 - **Sources** : `run.bat` (Python 3.12 ou plus récent).
 

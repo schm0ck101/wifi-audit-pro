@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 
 APP_NAME = "WiFi Audit Pro"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 AUTHOR = "SCHMOCK"
 AUTHOR_URL = "https://schmock.fr"
 log = logging.getLogger(__name__)

@@ -5,7 +5,7 @@
 #   4. exécutable (PyInstaller) -> build\app\WiFiAuditPro\WiFiAuditPro.exe (interne, utilisé par l'installateur)
 #   5. version portable en un seul fichier -> dist\WiFiAuditPro-Portable.exe
 #   7. publication GitHub (release vX.Y.Z : portable + installateur), sauf -NoRelease
-#   6. installateur (Inno Setup, si présent) -> dist\WiFiAuditPro-Setup-1.0.1.exe
+#   6. installateur (Inno Setup, si présent) -> dist\WiFiAuditPro-Setup-1.0.2.exe
 # Utilisation : clic droit > Exécuter avec PowerShell, ou  .\build.ps1 [-SkipTests] [-SkipPortable]
 param([switch]$SkipTests, [switch]$SkipPortable, [switch]$NoRelease)
 $ErrorActionPreference = "Stop"
