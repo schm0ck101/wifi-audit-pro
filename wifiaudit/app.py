@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import ctypes
 import logging
+import os
 import sys
 import threading
 import traceback
@@ -16,6 +17,20 @@ from .config import APP_NAME, APP_VERSION, Settings, data_dir
 from .events import setup_logging
 
 log = logging.getLogger("wifiaudit")
+
+
+def _compat_old_windows() -> None:
+    """Windows 10 < 1809 / Server 2016 : le moteur de polices DirectWrite de Qt 6.8+
+    (IDWriteFactory5, 1703+) n'y affiche que des carrés. On force le moteur GDI de
+    Windows, avant toute création de QApplication. Sans effet sur les versions récentes."""
+    try:
+        if sys.platform == "win32" and sys.getwindowsversion().build < 17763:
+            os.environ.setdefault("QT_QPA_PLATFORM", "windows:fontengine=gdi")
+    except Exception:
+        pass
+
+
+_compat_old_windows()
 
 
 def _excepthook(t, e, tb):
