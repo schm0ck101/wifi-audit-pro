@@ -1,6 +1,7 @@
 # Dépendances d'exécution de WiFi Audit Pro
-PySide6-Essentials>=6.7
-PySide6-Addons>=6.7
+# Qt 6.9 maximum : à partir de 6.10, Qt exige icuuc.dll, absent de Windows Server 2016.
+PySide6-Essentials>=6.9,<6.10
+PySide6-Addons>=6.9,<6.10
 pyqtgraph>=0.13.7
 numpy>=2.0
 openpyxl>=3.1

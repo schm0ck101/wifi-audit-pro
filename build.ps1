@@ -5,17 +5,24 @@
 #   4. exécutable (PyInstaller) -> build\app\WiFiAuditPro\WiFiAuditPro.exe (interne, utilisé par l'installateur)
 #   5. version portable en un seul fichier -> dist\WiFiAuditPro-Portable.exe
 #   7. publication GitHub (release vX.Y.Z : portable + installateur), sauf -NoRelease
-#   6. installateur (Inno Setup, si présent) -> dist\WiFiAuditPro-Setup-1.0.0.exe
+#   6. installateur (Inno Setup, si présent) -> dist\WiFiAuditPro-Setup-1.0.1.exe
 # Utilisation : clic droit > Exécuter avec PowerShell, ou  .\build.ps1 [-SkipTests] [-SkipPortable]
 param([switch]$SkipTests, [switch]$SkipPortable, [switch]$NoRelease)
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
-if (-not (Test-Path .venv\Scripts\python.exe)) {
-    Write-Host "Création de l'environnement virtuel..." -ForegroundColor Cyan
-    python -m venv .venv
-}
+# Python 3.13 + Qt 6.9 : Qt 6.10 et suivants exigent icuuc.dll (Windows 10 1703+),
+# absent de Windows Server 2016 ; PySide6 6.9 n'existe pas pour Python 3.14+.
 $py = ".\.venv\Scripts\python.exe"
+if ((Test-Path $py) -and -not ((& $py -c "import sys; print(sys.version_info[:2] == (3, 13))") -eq "True")) {
+    Write-Host "Environnement virtuel avec une autre version de Python : recréation..." -ForegroundColor Yellow
+    Remove-Item -Recurse -Force .venv
+}
+if (-not (Test-Path $py)) {
+    Write-Host "Création de l'environnement virtuel (Python 3.13)..." -ForegroundColor Cyan
+    py -3.13 -m venv .venv
+    if ($LASTEXITCODE -ne 0) { throw "Python 3.13 introuvable : installer avec « py install 3.13 »" }
+}
 & $py -m pip install --quiet --upgrade pip
 & $py -m pip install --quiet -r requirements-dev.txt
 
@@ -34,6 +41,9 @@ Write-Host "Exécutable (PyInstaller)..." -ForegroundColor Cyan
 & $py -m PyInstaller --noconfirm --clean --distpath build\app WiFiAuditPro.spec
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller a échoué" }
 if (Test-Path dist\WiFiAuditPro) { Remove-Item -Recurse -Force dist\WiFiAuditPro }
+Write-Host "Compatibilité Windows Server 2016..." -ForegroundColor Cyan
+& $py tools\check_deps.py build\app\WiFiAuditPro\_internal
+if ($LASTEXITCODE -ne 0) { throw "L'exécutable ne démarrerait pas sur Windows Server 2016 (voir ci-dessus)" }
 
 if (-not $SkipPortable) {
     Write-Host "Version portable (un seul fichier)..." -ForegroundColor Cyan

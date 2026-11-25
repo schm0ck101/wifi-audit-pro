@@ -1,6 +1,7 @@
 # Dépendances de développement / compilation
 -r requirements.txt
 pyinstaller>=6.10
+pefile>=2023.2   # contrôle des dépendances DLL (tools/check_deps.py)
 pillow>=10.0      # génération de l'icône .ico
 pytest>=8.0
 
