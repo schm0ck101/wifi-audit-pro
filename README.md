@@ -168,3 +168,28 @@ tests/
 Compilation : `powershell -ExecutionPolicy Bypass -File build.ps1` → `dist\`
 (exe, version portable, installateur si Inno Setup 6 est présent).
 Base des fabricants : `python tools/build_oui.py <fichier manuf de Wireshark>`.
+
+## Licence
+
+[MIT](LICENSE) — © 2026 SCHMOCK.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
+[SignPath Foundation](https://signpath.org).
+
+- **Committers and reviewers:** [SCHMOCK](https://github.com/schm0ck101)
+- **Approvers:** [SCHMOCK](https://github.com/schm0ck101)
+
+Release binaries (portable executable and installer) are built from this repository by GitHub Actions
+(`.github/workflows/build.yml`) and signed through SignPath; every release is approved manually.
+
+### Privacy policy
+
+This program will not transfer any information to other networked systems unless specifically requested by the user
+or the person installing or operating it. It contains no telemetry, no analytics and no automatic update check.
+Network connections:
+
+- **Wi-Fi scans** use the local Wi-Fi adapter only (no data leaves the computer); connection tests, only when started by the user, ping public resolvers (`1.1.1.1`, `8.8.8.8`) and the targets the user enters.
+
+Results stay on the computer (local data folder next to the portable executable or in `%APPDATA%`).

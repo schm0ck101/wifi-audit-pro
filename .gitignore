@@ -2,6 +2,9 @@
 .venv/
 build/
 dist/
+tosign/
+signed/
+signed-setup/
 __pycache__/
 *.pyc
 .pytest_cache/

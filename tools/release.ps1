@@ -3,6 +3,7 @@
 # - Version et nom lus dans installer\*.iss (#define AppVersion / AppName).
 # - Refuse de publier s'il reste des modifications non enregistrées (commit).
 # - Release déjà existante : les fichiers sont remplacés (même version recompilée).
+param([switch]$FromCI)
 $ErrorActionPreference = "Continue"
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
@@ -15,7 +16,7 @@ $app = ([regex]::Match((Get-Content $iss.FullName -Raw), '#define AppName "([^"]
 if (-not $ver) { Say "Version introuvable dans $($iss.Name)." Yellow; return }
 $tag = "v$ver"
 
-if (git status --porcelain) {
+if (-not $FromCI -and (git status --porcelain)) {
     Say "Modifications non enregistrées dans git : release $tag NON publiée (faire un commit d'abord)." Yellow
     return
 }
@@ -23,9 +24,11 @@ if (git status --porcelain) {
 $url = git remote get-url origin
 $owner = ([regex]::Match($url, 'github\.com[:/]([^/]+)/')).Groups[1].Value
 $active = gh api user --jq .login 2>$null
-if ($owner -and $active -ne $owner) { gh auth switch -h github.com -u $owner | Out-Null }
-git push -q origin HEAD 2>$null
-if ($LASTEXITCODE -ne 0) { Say "git push a échoué : release non publiée." Yellow; return }
+if (-not $FromCI) {
+    if ($owner -and $active -ne $owner) { gh auth switch -h github.com -u $owner | Out-Null }
+    git push -q origin HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { Say "git push a échoué : release non publiée." Yellow; return }
+}
 
 $assets = @(Get-ChildItem dist -File | Where-Object { $_.Name -like "*-Portable.exe" -or $_.Name -like "*-Setup-$ver.exe" } | ForEach-Object FullName)
 if ($assets.Count -lt 2) { Say "Exécutables manquants dans dist\ : release non publiée." Yellow; return }

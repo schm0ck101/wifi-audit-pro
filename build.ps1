@@ -7,7 +7,7 @@
 #   7. publication GitHub (release vX.Y.Z : portable + installateur), sauf -NoRelease
 #   6. installateur (Inno Setup, si présent) -> dist\WiFiAuditPro-Setup-1.0.2.exe
 # Utilisation : clic droit > Exécuter avec PowerShell, ou  .\build.ps1 [-SkipTests] [-SkipPortable]
-param([switch]$SkipTests, [switch]$SkipPortable, [switch]$NoRelease)
+param([switch]$SkipTests, [switch]$SkipPortable, [switch]$NoRelease, [switch]$SkipInstaller, [switch]$InstallerOnly)
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
@@ -20,9 +20,11 @@ if ((Test-Path $py) -and -not ((& $py -c "import sys; print(sys.version_info[:2]
 }
 if (-not (Test-Path $py)) {
     Write-Host "Création de l'environnement virtuel (Python 3.13)..." -ForegroundColor Cyan
-    py -3.13 -m venv .venv
+    if ($env:BUILD_PYTHON) { & $env:BUILD_PYTHON -m venv .venv } else { py -3.13 -m venv .venv }   # CI : Python fourni
     if ($LASTEXITCODE -ne 0) { throw "Python 3.13 introuvable : installer avec « py install 3.13 »" }
 }
+if ($InstallerOnly) { $SkipTests = $true }
+if (-not $InstallerOnly) {
 & $py -m pip install --quiet --upgrade pip
 & $py -m pip install --quiet -r requirements-dev.txt
 
@@ -53,6 +55,9 @@ if (-not $SkipPortable) {
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller (portable) a échoué" }
 }
 
+}   # fin des étapes « exécutables » (sautées avec -InstallerOnly)
+
+if ($SkipInstaller) { Write-Host "Installateur non demandé (-SkipInstaller)." -ForegroundColor Yellow; return }
 $iscc = @("$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
           "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
           "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
@@ -69,4 +74,4 @@ Copy-Item README.md dist\ -Force
 Write-Host "`nTerminé. Résultats dans le dossier dist\ :" -ForegroundColor Green
 Get-ChildItem dist | Format-Table Name, @{n="Taille (Mo)";e={ if ($_.PSIsContainer) { "{0:N1}" -f ((Get-ChildItem $_.FullName -Recurse | Measure-Object Length -Sum).Sum/1MB) } else { "{0:N1}" -f ($_.Length/1MB) } }}
 
-if (-not $NoRelease -and -not $SkipPortable) { & "$PSScriptRoot\tools\release.ps1" }
+if (-not $NoRelease -and -not $SkipPortable -and -not $InstallerOnly) { & "$PSScriptRoot\tools\release.ps1" }

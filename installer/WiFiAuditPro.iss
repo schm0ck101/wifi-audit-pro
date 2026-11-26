@@ -41,6 +41,7 @@ Name: "autostart"; Description: "Lancer WiFi Audit Pro au démarrage de Windows"
 [Files]
 Source: "..\build\app\WiFiAuditPro\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"

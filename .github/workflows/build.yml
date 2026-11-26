@@ -1,0 +1,125 @@
+# Compilation de WiFi Audit Pro sur GitHub Actions, signature par SignPath (SignPath Foundation, projets open source),
+# publication de la release sur tag « vX.Y.Z ».
+#
+# Tant que les variables SignPath ne sont pas renseignées (Settings > Secrets and variables > Actions), la compilation
+# produit des exécutables NON signés (artefacts téléchargeables) et ne publie rien.
+#   - secret   SIGNPATH_API_TOKEN
+#   - variable SIGNPATH_ORGANIZATION_ID
+#   - variable SIGNPATH_PROJECT_SLUG            (ex. wifi-audit-pro)
+#   - variable SIGNPATH_SIGNING_POLICY_SLUG     (ex. release-signing)
+#   - configurations d'artefact SignPath : « binaries » (zip : app/**/*.exe, WiFiAuditPro-Portable.exe)
+#                                          « installer » (zip : WiFiAuditPro-Setup-*.exe)
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      SIGN: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Tests, exécutable et version portable
+        shell: pwsh
+        env:
+          BUILD_PYTHON: python
+        run: .\build.ps1 -NoRelease -SkipInstaller
+
+      - name: Préparer les exécutables à signer
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force tosign | Out-Null
+          Copy-Item -Recurse build\app\WiFiAuditPro tosign\app
+          Copy-Item dist\WiFiAuditPro-Portable.exe tosign\
+
+      - name: Envoi des exécutables
+        if: env.SIGN == 'true'
+        id: up_bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-unsigned
+          path: tosign
+
+      - name: Signature des exécutables (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: binaries
+          github-artifact-id: ${{ steps.up_bin.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Remettre les exécutables signés
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          Copy-Item -Recurse -Force signed\app\* build\app\WiFiAuditPro\
+          Copy-Item -Force signed\WiFiAuditPro-Portable.exe dist\
+
+      - name: Installateur
+        shell: pwsh
+        run: .\build.ps1 -InstallerOnly
+
+      - name: Envoi de l'installateur
+        if: env.SIGN == 'true'
+        id: up_setup
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-unsigned
+          path: dist/WiFiAuditPro-Setup-*.exe
+
+      - name: Signature de l'installateur (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.up_setup.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-setup
+
+      - name: Remettre l'installateur signé
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: Copy-Item -Force signed-setup\*.exe dist\
+
+      - name: Résultat
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiFiAuditPro-${{ github.ref_name }}${{ env.SIGN == 'true' && '' || '-non-signe' }}
+          path: |
+            dist/WiFiAuditPro-Portable.exe
+            dist/WiFiAuditPro-Setup-*.exe
+
+      - name: Publication de la release (tag vX.Y.Z, exécutables signés uniquement)
+        if: startsWith(github.ref, 'refs/tags/v') && env.SIGN == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .\tools\release.ps1 -FromCI
